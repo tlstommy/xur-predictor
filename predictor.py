@@ -19,15 +19,14 @@ class XurPredictor():
         
         self.databasePath = dbPath
         self.tableName = TABLE_NAME.upper()
-        self.database = sqlite3.connect(self.databasePath)
-        self.cursor = self.database.cursor()
         self.createDB()
-        self.database.close()
+
     
     #create a new db using the GLOBALS above
     def createDB(self):
         name = self.tableName
-        
+        database = sqlite3.connect(self.databasePath)
+        cursor = database.cursor()
 
         #table header info
         sqlTable = f"""
@@ -38,27 +37,27 @@ class XurPredictor():
             );
             """
         try:
-            self.cursor.execute(sqlTable)
+            cursor.execute(sqlTable)
         except sqlite3.OperationalError:
             if(OVERWRITE_OLD):
                 
                 print("OVERWRITING OLD TABLE\n")
-                self.cursor.execute(f"DROP TABLE IF EXISTS {name}")
-                self.cursor.execute(sqlTable)
-
+                cursor.execute(f"DROP TABLE IF EXISTS {name}")
+                cursor.execute(sqlTable)
+        database.close()
 
     #append new data to db
     def addDataToDB(self,data):
 
         #connect to db
-        self.database = sqlite3.connect(self.databasePath)
-        self.cursor = self.database.cursor()
+        database = sqlite3.connect(self.databasePath)
+        cursor = database.cursor()
 
-        self.cursor.execute(f'''INSERT INTO {self.tableName} VALUES ('{data[0]}','{data[1]}','{data[2]}')''')
-        self.database.commit()
+        cursor.execute(f'''INSERT INTO {self.tableName} VALUES ('{data[0]}','{data[1]}','{data[2]}')''')
+        database.commit()
 
         print(f"Added {data} to database")
-        
+        database.close()
     def translateID(self,id):
         if id == 0:
             location = "Tower Hangar\nThe Last City, Earth"
@@ -69,13 +68,17 @@ class XurPredictor():
         return location
     
     def getIDs(self):
-        sqlStatement = f'''SELECT LocationID FROM {self.tableName}'''
-        
+        with sqlite3.connect(self.databasePath) as database:
+            cursor = database.cursor()
+            
+            #get locationIDS and return them as a list for predictions
+            cursor.execute(f'''SELECT LocationID FROM {self.tableName}''')
+            return [int(item[0]) for item in cursor.fetchall()]
 
         
 predictor = XurPredictor(DATABASE_PATH)
-
+print("Location IDs: ",predictor.getIDs())
 
 #util stuff
-for i in range(len(dcvIDs)):
-    predictor.addDataToDB([i,dcvDates[i],dcvIDs[i]])
+#for i in range(len(dcvIDs)):
+#    predictor.addDataToDB([i,dcvDates[i],dcvIDs[i]])
