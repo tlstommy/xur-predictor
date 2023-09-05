@@ -1,11 +1,10 @@
 import sqlite3
 from sqlite3 import Error
 
-from datetime import datetime
 
 DATABASE_PATH = "xurHistory.db"
 TABLE_NAME = "history"
-OVERWRITE_OLD = False
+OVERWRITE_OLD = True
 
 
 class XurPredictor():
@@ -26,8 +25,7 @@ class XurPredictor():
         sqlTable = f"""
             CREATE TABLE {name} (
             Date DATETIME NOT NULL,
-            Location VARCHAR(255) NOT NULL,
-            ID VARCHAR(252) NOT NULL
+            LocationID VARCHAR(255) NOT NULL,
             );
             """
         
@@ -43,7 +41,10 @@ class XurPredictor():
                     self.cursor.execute(f"DROP TABLE IF EXISTS {name}")
                     self.cursor.execute(sqlTable)
 
-    def addToDB(self):
+    def addToDB(self,data):
+
+        date = data[0]
+        locationID = data[1]
 
         #connect to db
         self.database = sqlite3.connect(self.databasePath)
@@ -52,7 +53,7 @@ class XurPredictor():
         print("DB and Cursor connected")
 
 
-        self.cursor.execute(f'''INSERT INTO {self.tableName} VALUES ('{datetime.now()}', '1', '2')''')
+        self.cursor.execute(f'''INSERT INTO {self.tableName} VALUES ('{date}', '{locationID}')''')
         self.database.commit()
         
         
