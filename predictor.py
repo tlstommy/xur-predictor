@@ -1,4 +1,5 @@
 import sqlite3
+import numpy as np
 from sqlite3 import Error
 
 
@@ -78,7 +79,6 @@ class XurPredictor():
         
 predictor = XurPredictor(DATABASE_PATH)
 print("Location IDs: ",predictor.getIDs())
-
 #util stuff
 #for i in range(len(dcvIDs)):
 #    predictor.addDataToDB([i,dcvDates[i],dcvIDs[i]])
