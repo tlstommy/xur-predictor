@@ -3,7 +3,8 @@ import numpy as np
 from sqlite3 import Error
 
 from keras.models import Sequential
-from keras.layers import LSTM, Dense
+from keras.layers import Dense, Embedding, LSTM
+from keras.preprocessing.sequence import TimeseriesGenerator
 
 
 DATABASE_PATH = "xurHistory.db"
@@ -78,15 +79,37 @@ class XurPredictor():
             return [int(item[0]) for item in cursor.fetchall()]
 
     def makePrediction(self):
-        
-        #get locational input data and reshape it
-        print(self.data)
-        self.data = np.array(self.getIDs())
-        print(self.data)
-        self.data = self.data.reshape(self.data.shape[0], 1, 1)
-        print(self.data)
+        testLocationData = [0, 2, 0, 1, 0, 1, 0, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 0, 2, 0, 2, 1, 0, 0, 0, 0, 2, 0, 1, 2, 0, 2, 1, 0, 2, 0, 2, 0, 2, 1, 0, 0, 2, 1, 0, 0, 2, 1, 0, 2, 0, 1, 2, 0, 2, 0, 2, 1, 0, 1, 0, 1, 2, 0, 1, 2, 1, 1, 0, 1, 2, 0, 2, 1, 0, 1, 2, 1, 1, 2, 0, 2, 0, 2, 0, 2, 1, 0, 2, 0, 1, 0, 2, 0, 1, 0, 2, 1, 0, 0, 2, 1, 2, 1, 2, 1, 0, 1, 1, 0, 2, 0, 2, 0, 1, 0, 1, 2, 0, 2, 1, 0, 1, 2, 1, 2, 0, 2, 1, 2, 1, 1, 0, 1, 2, 0, 1, 2, 0, 1, 0, 1, 2, 1]
 
-    
+        weeks = []
+        #get locational input data and reshape it
+        #locationData = np.array(self.getIDs())
+        locationData = np.array(testLocationData)
+        #it shoudl predict 2
+
+        
+
+
+        n_input = 10
+        n_features = 1
+        locationData = locationData.reshape((len(locationData), n_features))
+        generator = TimeseriesGenerator(locationData, locationData, length=n_input, batch_size=8)
+
+
+        #lstm model
+        model = Sequential()
+        model.add(LSTM(50, activation='relu', input_shape=(n_input, n_features)))
+        model.add(Dense(1))
+        model.compile(optimizer='adam', loss='mse')
+
+
+        model.fit(generator, steps_per_epoch=1, epochs=200, verbose=0)
+
+        # Make predictions
+        last_sequence = locationData[-n_input:].reshape((1, n_input, n_features))
+        next_location = model.predict(last_sequence, verbose=0)
+        print(next_location)
+       
         
 predictor = XurPredictor(DATABASE_PATH)
 print(predictor.makePrediction())
