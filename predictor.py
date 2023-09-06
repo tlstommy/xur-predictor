@@ -1,6 +1,7 @@
 import sqlite3
 import numpy as np
 from sqlite3 import Error
+from collections import Counter
 
 from keras.models import Sequential
 from keras.layers import Dense, Embedding, LSTM
@@ -78,19 +79,22 @@ class XurPredictor():
             cursor.execute(f'''SELECT LocationID FROM {self.tableName}''')
             return [int(item[0]) for item in cursor.fetchall()]
 
-    def makePrediction(self):
-        testLocationData = [0, 2, 0, 1, 0, 1, 0, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 0, 2, 0, 2, 1, 0, 0, 0, 0, 2, 0, 1, 2, 0, 2, 1, 0, 2, 0, 2, 0, 2, 1, 0, 0, 2, 1, 0, 0, 2, 1, 0, 2, 0, 1, 2, 0, 2, 0, 2, 1, 0, 1, 0, 1, 2, 0, 1, 2, 1, 1, 0, 1, 2, 0, 2, 1, 0, 1, 2, 1, 1, 2, 0, 2, 0, 2, 0, 2, 1, 0, 2, 0, 1, 0, 2, 0, 1, 0, 2, 1, 0, 0, 2, 1, 2, 1, 2, 1, 0, 1, 1, 0, 2, 0, 2, 0, 1, 0, 1, 2, 0, 2, 1, 0, 1, 2, 1, 2, 0, 2, 1, 2, 1, 1, 0, 1, 2, 0, 1, 2, 0, 1, 0, 1, 2, 1]
 
+
+
+
+    def makePrediction(self):
+        #testLocationData = [0, 2, 0, 1, 0, 1, 0, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 0, 2, 0, 2, 1, 0, 0, 0, 0, 2, 0, 1, 2, 0, 2, 1, 0, 2, 0, 2, 0, 2, 1, 0, 0, 2, 1, 0, 0, 2, 1, 0, 2, 0, 1, 2, 0, 2, 0, 2, 1, 0, 1, 0, 1, 2, 0, 1, 2, 1, 1, 0, 1, 2, 0, 2, 1, 0, 1, 2, 1, 1, 2, 0, 2, 0, 2, 0, 2, 1, 0, 2, 0, 1, 0, 2, 0, 1, 0, 2, 1, 0, 0, 2, 1, 2, 1, 2, 1, 0, 1, 1, 0, 2, 0, 2, 0, 1, 0, 1, 2, 0, 2, 1, 0, 1, 2, 1, 2, 0, 2, 1, 2, 1, 1, 0, 1, 2, 0, 1, 2, 0, 1, 0, 1, 2, 1, 2]
         weeks = []
         #get locational input data and reshape it
-        #locationData = np.array(self.getIDs())
-        locationData = np.array(testLocationData)
-        #it shoudl predict 2
+        locationData = np.array(self.getIDs())
+        #locationData = np.array(testLocationData)
+        #it shoudl predict 1
 
         
 
 
-        n_input = 10
+        n_input = int(len(locationData)/2)
         n_features = 1
         locationData = locationData.reshape((len(locationData), n_features))
         generator = TimeseriesGenerator(locationData, locationData, length=n_input, batch_size=8)
@@ -99,8 +103,9 @@ class XurPredictor():
         #lstm model
         model = Sequential()
         model.add(LSTM(50, activation='relu', input_shape=(n_input, n_features)))
-        model.add(Dense(1))
-        model.compile(optimizer='adam', loss='mse')
+        model.add(Dense(3))
+        model.compile(optimizer='adam', loss='mse', metrics=['accuracy'])
+        
 
 
         model.fit(generator, steps_per_epoch=1, epochs=200, verbose=0)
@@ -108,7 +113,16 @@ class XurPredictor():
         # Make predictions
         last_sequence = locationData[-n_input:].reshape((1, n_input, n_features))
         next_location = model.predict(last_sequence, verbose=0)
+        predicted_class = np.argmax(next_location)
+        print(predicted_class)
         print(next_location)
+
+
+        print(f"\nxur is predicted to arrive at: {self.translateID(predicted_class)}\n on friday.")
+        print("0: ",next_location[0][0])
+        print("1: ",next_location[0][1])
+        print("2: ",next_location[0][2])
+        
        
         
 predictor = XurPredictor(DATABASE_PATH)
