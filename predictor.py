@@ -119,7 +119,7 @@ class XurPredictor():
 
         
         #verbose = 0 is no output
-        model.fit(generator, steps_per_epoch=1, epochs=500, verbose=0)
+        model.fit(generator, steps_per_epoch=1, epochs=200, verbose=0)
 
         # predict the next item
         last_sequence = locationData[-datasetInputLength:].reshape((1, datasetInputLength, features))
@@ -128,7 +128,7 @@ class XurPredictor():
         print(f"Target: {targetVal}")
         print(f"Predicted Next Item in Sequence: {int(nextLocationPredection[0][0])} ({nextLocationPredection[0][0]})\n\n")
 
-        return(int(nextLocationPredection[0][0]))
+        return((int(nextLocationPredection[0][0])))
 
 
         
@@ -136,6 +136,12 @@ class XurPredictor():
         
 predictor = XurPredictor(DATABASE_PATH)
 predictor.makePrediction()
+
+vals = []
+for i in range(10):
+    vals.append(predictor.makePrediction())
+
+print(vals)
 #util stuff
 #for i in range(len(dcvIDs)):
 #    predictor.addDataToDB([i,dcvDates[i],dcvIDs[i]])
