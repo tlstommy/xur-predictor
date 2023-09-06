@@ -2,6 +2,9 @@ import sqlite3
 import numpy as np
 from sqlite3 import Error
 
+from keras.models import Sequential
+from keras.layers import LSTM, Dense
+
 
 DATABASE_PATH = "xurHistory.db"
 TABLE_NAME = "history"
@@ -21,44 +24,42 @@ class XurPredictor():
         self.databasePath = dbPath
         self.tableName = TABLE_NAME.upper()
         self.createDB()
+        self.data = None
 
     
     #create a new db using the GLOBALS above
     def createDB(self):
         name = self.tableName
-        database = sqlite3.connect(self.databasePath)
-        cursor = database.cursor()
+        with sqlite3.connect(self.databasePath) as database:
+            cursor = database.cursor()
 
-        #table header info
-        sqlTable = f"""
-            CREATE TABLE {name} (
-            Weeks_Since_11_13_2020 INT NOT NULL,
-            Date DATETIME NOT NULL,
-            LocationID VARCHAR(255) NOT NULL
-            );
-            """
-        try:
-            cursor.execute(sqlTable)
-        except sqlite3.OperationalError:
-            if(OVERWRITE_OLD):
-                
-                print("OVERWRITING OLD TABLE\n")
-                cursor.execute(f"DROP TABLE IF EXISTS {name}")
+            #table header info
+            sqlTable = f"""
+                CREATE TABLE {name} (
+                Weeks_Since_11_13_2020 INT NOT NULL,
+                Date DATETIME NOT NULL,
+                LocationID VARCHAR(255) NOT NULL
+                );
+                """
+            try:
                 cursor.execute(sqlTable)
-        database.close()
+            except sqlite3.OperationalError:
+                if(OVERWRITE_OLD):
+                    
+                    print("OVERWRITING OLD TABLE\n")
+                    cursor.execute(f"DROP TABLE IF EXISTS {name}")
+                    cursor.execute(sqlTable)
 
     #append new data to db
     def addDataToDB(self,data):
+        with sqlite3.connect(self.databasePath) as database:
+            cursor = database.cursor()
 
-        #connect to db
-        database = sqlite3.connect(self.databasePath)
-        cursor = database.cursor()
+            cursor.execute(f'''INSERT INTO {self.tableName} VALUES ('{data[0]}','{data[1]}','{data[2]}')''')
+            database.commit()
 
-        cursor.execute(f'''INSERT INTO {self.tableName} VALUES ('{data[0]}','{data[1]}','{data[2]}')''')
-        database.commit()
-
-        print(f"Added {data} to database")
-        database.close()
+            print(f"Added {data} to database")
+            database.close()
     def translateID(self,id):
         if id == 0:
             location = "Tower Hangar\nThe Last City, Earth"
@@ -67,7 +68,7 @@ class XurPredictor():
         if id == 2:
             location = "Watcher's Grave\nArcadian Valley, Nessus"
         return location
-    
+    #get location id data
     def getIDs(self):
         with sqlite3.connect(self.databasePath) as database:
             cursor = database.cursor()
@@ -76,9 +77,19 @@ class XurPredictor():
             cursor.execute(f'''SELECT LocationID FROM {self.tableName}''')
             return [int(item[0]) for item in cursor.fetchall()]
 
+    def makePrediction(self):
+        
+        #get locational input data and reshape it
+        print(self.data)
+        self.data = np.array(self.getIDs())
+        print(self.data)
+        self.data = self.data.reshape(self.data.shape[0], 1, 1)
+        print(self.data)
+
+    
         
 predictor = XurPredictor(DATABASE_PATH)
-print("Location IDs: ",predictor.getIDs())
+print(predictor.makePrediction())
 #util stuff
 #for i in range(len(dcvIDs)):
 #    predictor.addDataToDB([i,dcvDates[i],dcvIDs[i]])
