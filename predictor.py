@@ -66,7 +66,7 @@ class XurPredictor():
         if id == 0:
             location = "Tower Hangar\nThe Last City, Earth"
         if id == 1:
-            location = "Tower Hangar\nThe Last City, Earth"
+            location = "Winding Cove\nEuropean Dead Zone, Earth"
         if id == 2:
             location = "Watcher's Grave\nArcadian Valley, Nessus"
         return location
@@ -84,44 +84,42 @@ class XurPredictor():
 
 
     def makePrediction(self):
-        #testLocationData = [0, 2, 0, 1, 0, 1, 0, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 0, 2, 0, 2, 1, 0, 0, 0, 0, 2, 0, 1, 2, 0, 2, 1, 0, 2, 0, 2, 0, 2, 1, 0, 0, 2, 1, 0, 0, 2, 1, 0, 2, 0, 1, 2, 0, 2, 0, 2, 1, 0, 1, 0, 1, 2, 0, 1, 2, 1, 1, 0, 1, 2, 0, 2, 1, 0, 1, 2, 1, 1, 2, 0, 2, 0, 2, 0, 2, 1, 0, 2, 0, 1, 0, 2, 0, 1, 0, 2, 1, 0, 0, 2, 1, 2, 1, 2, 1, 0, 1, 1, 0, 2, 0, 2, 0, 1, 0, 1, 2, 0, 2, 1, 0, 1, 2, 1, 2, 0, 2, 1, 2, 1, 1, 0, 1, 2, 0, 1, 2, 0, 1, 0, 1, 2, 1, 2]
+        testLocationData = [0, 2, 0, 1, 0, 1, 0, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 0, 2, 0, 2, 1, 0, 0, 0, 0, 2, 0, 1, 2, 0, 2, 1, 0, 2, 0, 2, 0, 2, 1, 0, 0, 2, 1, 0, 0, 2, 1, 0, 2, 0, 1, 2, 0, 2, 0, 2, 1, 0, 1, 0, 1, 2, 0, 1, 2, 1, 1, 0, 1, 2, 0, 2, 1, 0, 1, 2, 1, 1, 2, 0, 2, 0, 2, 0, 2, 1, 0, 2, 0, 1, 0, 2, 0, 1, 0, 2, 1, 0, 0, 2, 1, 2, 1, 2, 1, 0, 1, 1, 0, 2, 0, 2, 0, 1, 0, 1, 2, 0, 2, 1, 0, 1, 2, 1, 2, 0, 2, 1, 2, 1, 1, 0, 1, 2, 0, 1, 2, 0, 1, 0, 1, 2, 1, 2, 0]
+
         weeks = []
         #get locational input data and reshape it
-        locationData = np.array(self.getIDs())
-        #locationData = np.array(testLocationData)
-        #it shoudl predict 1
+        #locationData = np.array(self.getIDs())
+        locationData = np.array(testLocationData)
+        #it shoudl predict 1!!
 
         
 
+        #use last 10 items in dataset
+        datasetInputLength = 10
 
-        n_input = int(len(locationData)/2)
-        n_features = 1
-        locationData = locationData.reshape((len(locationData), n_features))
-        generator = TimeseriesGenerator(locationData, locationData, length=n_input, batch_size=8)
+        #keep at 1 just for the singal number
+        features = 1
+
+        #reshape location date
+        locationData = locationData.reshape((len(locationData), features))
+        generator = TimeseriesGenerator(locationData, locationData, length=datasetInputLength, batch_size=8)
 
 
         #lstm model
         model = Sequential()
-        model.add(LSTM(50, activation='relu', input_shape=(n_input, n_features)))
-        model.add(Dense(3))
+        model.add(LSTM(50, activation='relu', input_shape=(datasetInputLength, features)))
+        model.add(Dense(1))
         model.compile(optimizer='adam', loss='mse', metrics=['accuracy'])
         
-
-
+        #verbose = 0 is no output
         model.fit(generator, steps_per_epoch=1, epochs=200, verbose=0)
 
-        # Make predictions
-        last_sequence = locationData[-n_input:].reshape((1, n_input, n_features))
-        next_location = model.predict(last_sequence, verbose=0)
-        predicted_class = np.argmax(next_location)
-        print(predicted_class)
-        print(next_location)
+        # predict the next item
+        last_sequence = locationData[-datasetInputLength:].reshape((1, datasetInputLength, features))
+        nextLocationPredection = model.predict(last_sequence, verbose=0)
+        print(f"Predicted Next Item in Sequence: {nextLocationPredection[0][0]}")
 
 
-        print(f"\nxur is predicted to arrive at: {self.translateID(predicted_class)}\n on friday.")
-        print("0: ",next_location[0][0])
-        print("1: ",next_location[0][1])
-        print("2: ",next_location[0][2])
         
        
         
