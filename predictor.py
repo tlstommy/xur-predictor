@@ -86,7 +86,7 @@ class XurPredictor():
     def makePrediction(self):
         testLocationData = [0, 2, 0, 1, 0, 1, 0, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 0, 2, 0, 2, 1, 0, 0, 0, 0, 2, 0, 1, 2, 0, 2, 1, 0, 2, 0, 2, 0, 2, 1, 0, 0, 2, 1, 0, 0, 2, 1, 0, 2, 0, 1, 2, 0, 2, 0, 2, 1, 0, 1, 0, 1, 2, 0, 1, 2, 1, 1, 0, 1, 2, 0, 2, 1, 0, 1, 2, 1, 1, 2, 0, 2, 0, 2, 0, 2, 1, 0, 2, 0, 1, 0, 2, 0, 1, 0, 2, 1, 0, 0, 2, 1, 2, 1, 2, 1, 0, 1, 1, 0, 2, 0, 2, 0, 1, 0, 1, 2, 0, 2, 1, 0, 1, 2, 1, 2, 0, 2, 1, 2, 1, 1, 0, 1, 2, 0, 1, 2, 0, 1, 0, 1, 2, 1, 2, 0, 1]
 
-        removeNWeeks = 1
+        removeNWeeks = 0
 
         targetVal = None
         #remove last n items for testing
@@ -96,7 +96,6 @@ class XurPredictor():
         #get locational input data and reshape it
         #locationData = np.array(self.getIDs())
         locationData = np.array(testLocationData)
-        #it shoudl predict 1!!
 
         
 
@@ -117,21 +116,26 @@ class XurPredictor():
         model.add(Dense(1))
         model.compile(optimizer='adam', loss='mse', metrics=['accuracy'])
         
+
+        
         #verbose = 0 is no output
-        model.fit(generator, steps_per_epoch=1, epochs=200, verbose=0)
+        model.fit(generator, steps_per_epoch=1, epochs=500, verbose=0)
 
         # predict the next item
         last_sequence = locationData[-datasetInputLength:].reshape((1, datasetInputLength, features))
         nextLocationPredection = model.predict(last_sequence, verbose=0)
+        print(f"Prev Week: {locationData[-1]}")
         print(f"Target: {targetVal}")
-        print(f"Predicted Next Item in Sequence: {nextLocationPredection[0][0]}")
+        print(f"Predicted Next Item in Sequence: {int(nextLocationPredection[0][0])} ({nextLocationPredection[0][0]})\n\n")
+
+        return(int(nextLocationPredection[0][0]))
 
 
         
        
         
 predictor = XurPredictor(DATABASE_PATH)
-print(predictor.makePrediction())
+predictor.makePrediction()
 #util stuff
 #for i in range(len(dcvIDs)):
 #    predictor.addDataToDB([i,dcvDates[i],dcvIDs[i]])
