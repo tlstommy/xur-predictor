@@ -113,7 +113,7 @@ class XurPredictor():
         #lstm model
         model = Sequential()
         model.add(LSTM(50, activation='relu', input_shape=(datasetInputLength, features)))
-        model.add(Dense(1))
+        model.add(Dense(3))
         model.compile(optimizer='adam', loss='mse', metrics=['accuracy'])
         
 
@@ -124,15 +124,19 @@ class XurPredictor():
         # predict the next item
         last_sequence = locationData[-datasetInputLength:].reshape((1, datasetInputLength, features))
         nextLocationPredection = model.predict(last_sequence, verbose=0)
+        predictedLoc = np.argmax(nextLocationPredection)
         print(f"Prev Week: {locationData[-1]}")
         print(f"Target: {targetVal}")
-        print(f"Predicted Next Item in Sequence: {int(nextLocationPredection[0][0])} ({nextLocationPredection[0][0]})\n\n")
+        print(f"Predicted Next Item in Sequence: {predictedLoc}\n\n")
+        print("0:", nextLocationPredection[0][0])
+        print("1:", nextLocationPredection[0][1])
+        print("2:", nextLocationPredection[0][2])
 
-        return((int(nextLocationPredection[0][0])))
+        return(predictedLoc)
 
 
         
-       
+  
         
 predictor = XurPredictor(DATABASE_PATH)
 predictor.makePrediction()
