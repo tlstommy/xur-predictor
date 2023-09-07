@@ -86,7 +86,7 @@ class XurPredictor():
     def makePrediction(self):
         testLocationData = [0, 2, 0, 1, 0, 1, 0, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 0, 2, 0, 2, 1, 0, 0, 0, 0, 2, 0, 1, 2, 0, 2, 1, 0, 2, 0, 2, 0, 2, 1, 0, 0, 2, 1, 0, 0, 2, 1, 0, 2, 0, 1, 2, 0, 2, 0, 2, 1, 0, 1, 0, 1, 2, 0, 1, 2, 1, 1, 0, 1, 2, 0, 2, 1, 0, 1, 2, 1, 1, 2, 0, 2, 0, 2, 0, 2, 1, 0, 2, 0, 1, 0, 2, 0, 1, 0, 2, 1, 0, 0, 2, 1, 2, 1, 2, 1, 0, 1, 1, 0, 2, 0, 2, 0, 1, 0, 1, 2, 0, 2, 1, 0, 1, 2, 1, 2, 0, 2, 1, 2, 1, 1, 0, 1, 2, 0, 1, 2, 0, 1, 0, 1, 2, 1, 2, 0, 1]
 
-        removeNWeeks = 0
+        removeNWeeks = 1
 
         targetVal = None
         #remove last n items for testing
@@ -112,14 +112,15 @@ class XurPredictor():
 
         #lstm model
         model = Sequential()
-        model.add(LSTM(50, activation='relu', input_shape=(datasetInputLength, features)))
+        model.add(LSTM(100, activation='relu', input_shape=(datasetInputLength, features)))
         model.add(Dense(3))
         model.compile(optimizer='adam', loss='mse', metrics=['accuracy'])
         
 
         
         #verbose = 0 is no output
-        model.fit(generator, steps_per_epoch=1, epochs=200, verbose=0)
+        model.fit(generator, steps_per_epoch=1, epochs=1000, verbose=1)
+
 
         # predict the next item
         last_sequence = locationData[-datasetInputLength:].reshape((1, datasetInputLength, features))
@@ -141,11 +142,6 @@ class XurPredictor():
 predictor = XurPredictor(DATABASE_PATH)
 predictor.makePrediction()
 
-vals = []
-for i in range(10):
-    vals.append(predictor.makePrediction())
-
-print(vals)
 #util stuff
 #for i in range(len(dcvIDs)):
 #    predictor.addDataToDB([i,dcvDates[i],dcvIDs[i]])
