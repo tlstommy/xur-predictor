@@ -2,7 +2,7 @@ import sqlite3
 import numpy as np
 from sqlite3 import Error
 from collections import Counter
-
+import keras.models
 from keras.models import Sequential
 from keras.layers import Dense, Embedding, LSTM
 from keras.preprocessing.sequence import TimeseriesGenerator
@@ -27,6 +27,8 @@ class XurPredictor():
         self.tableName = TABLE_NAME.upper()
         self.createDB()
         self.data = None
+        self.datasetInputLength = 10
+        self.datasetFeatures = 1
 
     
     #create a new db using the GLOBALS above
@@ -79,14 +81,40 @@ class XurPredictor():
             cursor.execute(f'''SELECT LocationID FROM {self.tableName}''')
             return [int(item[0]) for item in cursor.fetchall()]
 
+    def trainModel(self,modelName,epochs):
+
+       
+        
+        locationData = np.array(self.getIDs())
+        locationData = locationData.reshape((len(locationData), self.datasetFeatures))
+        generator = TimeseriesGenerator(locationData, locationData, length=self.datasetInputLength, batch_size=8)
 
 
+        model = Sequential()
+        model.add(LSTM(50, activation='relu', input_shape=(self.datasetInputLength, self.datasetFeatures)))
+        model.add(Dense(1))
+        model.compile(optimizer='adam', loss='mse', metrics=['accuracy'])
+            
 
+        
+        #verbose = 0 is no output
+        model.fit(generator, steps_per_epoch=1, epochs=epochs, verbose=1)
+        model.save(modelName)
+
+    def loadModel(self,modelName):
+        return keras.models.load_model(modelName)
+
+    def handleRepeat(self,predictionValue,previousValue):
+        print(predictionValue,previousValue)
+        if predictionValue <= 0.85:
+            predictionValue = np.round(predictionValue) - 1
+        
+        print(f"adjusted repeat value: {predictionValue}" )
 
     def makePrediction(self):
         testLocationData = [0, 2, 0, 1, 0, 1, 0, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 0, 2, 0, 2, 1, 0, 0, 0, 0, 2, 0, 1, 2, 0, 2, 1, 0, 2, 0, 2, 0, 2, 1, 0, 0, 2, 1, 0, 0, 2, 1, 0, 2, 0, 1, 2, 0, 2, 0, 2, 1, 0, 1, 0, 1, 2, 0, 1, 2, 1, 1, 0, 1, 2, 0, 2, 1, 0, 1, 2, 1, 1, 2, 0, 2, 0, 2, 0, 2, 1, 0, 2, 0, 1, 0, 2, 0, 1, 0, 2, 1, 0, 0, 2, 1, 2, 1, 2, 1, 0, 1, 1, 0, 2, 0, 2, 0, 1, 0, 1, 2, 0, 2, 1, 0, 1, 2, 1, 2, 0, 2, 1, 2, 1, 1, 0, 1, 2, 0, 1, 2, 0, 1, 0, 1, 2, 1, 2, 0, 1]
 
-        removeNWeeks = 1
+        removeNWeeks = 0
 
         targetVal = None
         #remove last n items for testing
@@ -97,50 +125,41 @@ class XurPredictor():
         #locationData = np.array(self.getIDs())
         locationData = np.array(testLocationData)
 
-        
-
-        #use last 10 items in dataset
-        datasetInputLength = 10
-
-        #keep at 1 just for the singal number
-        features = 1
 
         #reshape location date
-        locationData = locationData.reshape((len(locationData), features))
-        generator = TimeseriesGenerator(locationData, locationData, length=datasetInputLength, batch_size=8)
+        locationData = locationData.reshape((len(locationData), self.datasetFeatures))
 
-
-        #lstm model
-        model = Sequential()
-        model.add(LSTM(100, activation='relu', input_shape=(datasetInputLength, features)))
-        model.add(Dense(3))
-        model.compile(optimizer='adam', loss='mse', metrics=['accuracy'])
-        
-
-        
-        #verbose = 0 is no output
-        model.fit(generator, steps_per_epoch=1, epochs=1000, verbose=1)
-
+        model = self.loadModel("xp.keras")
 
         # predict the next item
-        last_sequence = locationData[-datasetInputLength:].reshape((1, datasetInputLength, features))
+        last_sequence = locationData[-self.datasetInputLength:].reshape((1, self.datasetInputLength, self.datasetFeatures))
         nextLocationPredection = model.predict(last_sequence, verbose=0)
-        predictedLoc = np.argmax(nextLocationPredection)
-        print(f"Prev Week: {locationData[-1]}")
+        predictedLocVal = nextLocationPredection[0][0]
+        predictedLocValRound = np.round(predictedLocVal)
+        print(f"Prev Week: {locationData[-1][0]}")
         print(f"Target: {targetVal}")
-        print(f"Predicted Next Item in Sequence: {predictedLoc}\n\n")
-        print("0:", nextLocationPredection[0][0])
-        print("1:", nextLocationPredection[0][1])
-        print("2:", nextLocationPredection[0][2])
 
-        return(predictedLoc)
+        if predictedLocValRound == locationData[-1]:
+            self.handleRepeat(predictedLocVal,locationData[-1][0])
+
+        
+        print(f"Predicted Next Item in Sequence: {predictedLocValRound} ({predictedLocVal})\n\n")
+
+        
+        
+
+        return(predictedLocVal)
 
 
         
   
         
 predictor = XurPredictor(DATABASE_PATH)
+
+#predictor.trainModel("xp.keras",200)
+
 predictor.makePrediction()
+
 
 #util stuff
 #for i in range(len(dcvIDs)):
