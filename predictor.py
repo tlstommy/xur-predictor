@@ -136,18 +136,28 @@ class XurPredictor():
         
         print(f"adjusted repeat value: {predictionValue}" )
 
+    #pure random
     def predictNextMath(self,sequence):
+        #last second to last and 3rd to last vals
         lastValue = sequence[-1]
-        secondLastValue = sequence[-2]
-        thirdLastValue = sequence[-3]
-        print(thirdLastValue,secondLastValue,lastValue)
-        # Find the possible next values (0, 1, or 2) that is not equal to the last value
-        possible_next_values = [x for x in [0, 1, 2] if x != lastValue]
-        print(possible_next_values)
-        # Randomly select a value from the possible next values
-        next_value = random.choice(possible_next_values)
+        secondValue = sequence[-2]
+        thirdValue = sequence[-3]
         
-        return next_value
+        # Predict based on recent patterns
+        if lastValue == secondValue:
+            # If the last two values are the same, choose a value different from the last value
+            possible_next_values = [x for x in [0, 1, 2] if x != lastValue]
+        elif lastValue == thirdValue:
+            # If a pattern of alternating values is detected, predict a value different from the second_last value
+            possible_next_values = [x for x in [0, 1, 2] if x != secondValue]
+        else:
+            # If no pattern is detected, consider any value except the last value
+            possible_next_values = [x for x in [0, 1, 2] if x != lastValue]
+        
+        # Randomly select a value from the possible next values
+        nextValue = random.choice(possible_next_values)
+        
+        return nextValue
 
     def makePrediction(self):
         testLocationData = [0, 2, 0, 1, 0, 1, 0, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 0, 2, 0, 2, 1, 0, 0, 0, 0, 2, 0, 1, 2, 0, 2, 1, 0, 2, 0, 2, 0, 2, 1, 0, 0, 2, 1, 0, 0, 2, 1, 0, 2, 0, 1, 2, 0, 2, 0, 2, 1, 0, 1, 0, 1, 2, 0, 1, 2, 1, 1, 0, 1, 2, 0, 2, 1, 0, 1, 2, 1, 1, 2, 0, 2, 0, 2, 0, 2, 1, 0, 2, 0, 1, 0, 2, 0, 1, 0, 2, 1, 0, 0, 2, 1, 2, 1, 2, 1, 0, 1, 1, 0, 2, 0, 2, 0, 1, 0, 1, 2, 0, 2, 1, 0, 1, 2, 1, 2, 0, 2, 1, 2, 1, 1, 0, 1, 2, 0, 1, 2, 0, 1, 0, 1, 2, 1, 2, 0, 1]
