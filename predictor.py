@@ -66,7 +66,7 @@ class XurPredictor():
             database.commit()
 
             print(f"Added {data} to database")
-            database.close()
+            
     def translateID(self,id):
         if id == 0:
             location = "Tower Hangar\nThe Last City, Earth"
@@ -210,5 +210,7 @@ predictor = XurPredictor(DATABASE_PATH)
 
 #predictor.trainModel("xp.keras",500)
 
-predictor.makePrediction()
+#predictor.makePrediction()
+
+predictor.addDataToDB([146,"09-08-2023",2])
 
