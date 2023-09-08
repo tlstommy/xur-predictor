@@ -27,7 +27,7 @@ class XurPredictor():
         self.tableName = TABLE_NAME.upper()
         self.createDB()
         self.data = None
-        self.datasetInputLength = 20
+        self.datasetInputLength = 24
         self.datasetFeatures = 1
 
     
@@ -153,11 +153,7 @@ class XurPredictor():
         
 predictor = XurPredictor(DATABASE_PATH)
 
-#predictor.trainModel("xp.keras",200)
+predictor.trainModel("xp.keras",500)
 
 predictor.makePrediction()
 
-
-#util stuff
-#for i in range(len(dcvIDs)):
-#    predictor.addDataToDB([i,dcvDates[i],dcvIDs[i]])
