@@ -211,6 +211,3 @@ predictor = XurPredictor(DATABASE_PATH)
 #predictor.trainModel("xp.keras",500)
 
 predictor.makePrediction()
-
-
-
