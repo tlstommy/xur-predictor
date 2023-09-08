@@ -1,5 +1,6 @@
 import sqlite3
 import numpy as np
+import random
 import tensorflow as tf
 from sqlite3 import Error
 from collections import Counter
@@ -98,11 +99,11 @@ class XurPredictor():
         validationGenerator = TimeseriesGenerator(validationData, validationData, length=self.datasetInputLength, batch_size=8)
 
         
-        #early_stop = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
+        early_stop = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=False)
 
 
         model = Sequential()
-        model.add(LSTM(100, activation='relu', input_shape=(self.datasetInputLength, self.datasetFeatures)))
+        model.add(LSTM(50, activation='relu', input_shape=(self.datasetInputLength, self.datasetFeatures)))
         model.add(Dense(3))
         model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
             
@@ -110,12 +111,13 @@ class XurPredictor():
         
         #verbose = 0 is no output
         model.fit(generator, steps_per_epoch=1, epochs=epochs, verbose=1,validation_data=validationGenerator)
+        #model.fit(generator, steps_per_epoch=1, epochs=epochs, verbose=1,validation_data=validationGenerator,callbacks=[early_stop])
         model.save(modelName)
 
 
     #create 80% training 20% validation
     def createTrainingData(self,data):
-        dataSplitPoint = int(0.9 * len(data))
+        dataSplitPoint = int(0.8 * len(data))
         trainingData = data[:dataSplitPoint]
         validationData = data[dataSplitPoint:]
 
@@ -134,10 +136,22 @@ class XurPredictor():
         
         print(f"adjusted repeat value: {predictionValue}" )
 
+    def predictNextMath(self,sequence):
+        # Get the last two unique values from the sequence
+        last_values = list({sequence[-1], sequence[-2]})
+        
+        # Find the possible next values (0, 1, or 2) that weren't one of the last two values
+        possible_next_values = [x for x in [0, 1, 2] if x not in last_values]
+        
+        # Randomly select a value from the possible next values
+        next_value = random.choice(possible_next_values)
+    
+        return next_value
+
     def makePrediction(self):
         testLocationData = [0, 2, 0, 1, 0, 1, 0, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 0, 2, 0, 2, 1, 0, 0, 0, 0, 2, 0, 1, 2, 0, 2, 1, 0, 2, 0, 2, 0, 2, 1, 0, 0, 2, 1, 0, 0, 2, 1, 0, 2, 0, 1, 2, 0, 2, 0, 2, 1, 0, 1, 0, 1, 2, 0, 1, 2, 1, 1, 0, 1, 2, 0, 2, 1, 0, 1, 2, 1, 1, 2, 0, 2, 0, 2, 0, 2, 1, 0, 2, 0, 1, 0, 2, 0, 1, 0, 2, 1, 0, 0, 2, 1, 2, 1, 2, 1, 0, 1, 1, 0, 2, 0, 2, 0, 1, 0, 1, 2, 0, 2, 1, 0, 1, 2, 1, 2, 0, 2, 1, 2, 1, 1, 0, 1, 2, 0, 1, 2, 0, 1, 0, 1, 2, 1, 2, 0, 1]
 
-        removeNWeeks = 0
+        removeNWeeks = 3
 
         targetVal = None
         #remove last n items for testing
@@ -145,8 +159,8 @@ class XurPredictor():
             targetVal = testLocationData.pop()
 
         #get locational input data and reshape it
-        locationData = np.array(self.getIDs())
-        #locationData = np.array(testLocationData)
+        #locationData = np.array(self.getIDs())
+        locationData = np.array(testLocationData)
 
 
         #reshape location date
@@ -161,12 +175,19 @@ class XurPredictor():
         predictedLocVal = nextLocationPredection[0][0]
         predictedLocValRound = np.round(predictedLocVal)
         predictedLoc = np.argmax(nextLocationPredection)
+
+        if predictedLoc == locationData[-1][0]:
+            print("duplicate prediction: ",self.predictNextMath(self.getIDs()))
+
+
+
         print(f"Predicted Next Item in Sequence: {predictedLoc}")
         print("0:", nextLocationPredection[0][0])
         print("1:", nextLocationPredection[0][1])
         print("2:", nextLocationPredection[0][2])
         print(f"\n\nPrev Week: {locationData[-1][0]}")
         print(f"Target: {targetVal}")
+
 
         return(predictedLocVal)
 
@@ -176,7 +197,7 @@ class XurPredictor():
         
 predictor = XurPredictor(DATABASE_PATH)
 
-predictor.trainModel("xp.keras",500)
+#predictor.trainModel("xp.keras",500)
 
 predictor.makePrediction()
 
