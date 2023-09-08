@@ -137,21 +137,22 @@ class XurPredictor():
         print(f"adjusted repeat value: {predictionValue}" )
 
     def predictNextMath(self,sequence):
-        # Get the last two unique values from the sequence
-        last_values = list({sequence[-1], sequence[-2]})
-        
-        # Find the possible next values (0, 1, or 2) that weren't one of the last two values
-        possible_next_values = [x for x in [0, 1, 2] if x not in last_values]
-        
+        lastValue = sequence[-1]
+        secondLastValue = sequence[-2]
+        thirdLastValue = sequence[-3]
+        print(thirdLastValue,secondLastValue,lastValue)
+        # Find the possible next values (0, 1, or 2) that is not equal to the last value
+        possible_next_values = [x for x in [0, 1, 2] if x != lastValue]
+        print(possible_next_values)
         # Randomly select a value from the possible next values
         next_value = random.choice(possible_next_values)
-    
+        
         return next_value
 
     def makePrediction(self):
         testLocationData = [0, 2, 0, 1, 0, 1, 0, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 0, 2, 0, 2, 1, 0, 0, 0, 0, 2, 0, 1, 2, 0, 2, 1, 0, 2, 0, 2, 0, 2, 1, 0, 0, 2, 1, 0, 0, 2, 1, 0, 2, 0, 1, 2, 0, 2, 0, 2, 1, 0, 1, 0, 1, 2, 0, 1, 2, 1, 1, 0, 1, 2, 0, 2, 1, 0, 1, 2, 1, 1, 2, 0, 2, 0, 2, 0, 2, 1, 0, 2, 0, 1, 0, 2, 0, 1, 0, 2, 1, 0, 0, 2, 1, 2, 1, 2, 1, 0, 1, 1, 0, 2, 0, 2, 0, 1, 0, 1, 2, 0, 2, 1, 0, 1, 2, 1, 2, 0, 2, 1, 2, 1, 1, 0, 1, 2, 0, 1, 2, 0, 1, 0, 1, 2, 1, 2, 0, 1]
 
-        removeNWeeks = 3
+        removeNWeeks = 0
 
         targetVal = None
         #remove last n items for testing
@@ -159,8 +160,8 @@ class XurPredictor():
             targetVal = testLocationData.pop()
 
         #get locational input data and reshape it
-        #locationData = np.array(self.getIDs())
-        locationData = np.array(testLocationData)
+        locationData = np.array(self.getIDs())
+        #locationData = np.array(testLocationData)
 
 
         #reshape location date
