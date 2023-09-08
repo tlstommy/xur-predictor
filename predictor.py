@@ -29,7 +29,7 @@ class XurPredictor():
         self.tableName = TABLE_NAME.upper()
         self.createDB()
         self.data = None
-        self.datasetInputLength = 24
+        self.datasetInputLength = 10
         self.datasetFeatures = 1
 
     
@@ -98,24 +98,24 @@ class XurPredictor():
         validationGenerator = TimeseriesGenerator(validationData, validationData, length=self.datasetInputLength, batch_size=8)
 
         
-        early_stop = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
+        #early_stop = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
 
 
         model = Sequential()
         model.add(LSTM(100, activation='relu', input_shape=(self.datasetInputLength, self.datasetFeatures)))
         model.add(Dense(3))
-        model.compile(optimizer='adam', loss='mean_squared_error', metrics=['accuracy'])
+        model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
             
 
         
         #verbose = 0 is no output
-        model.fit(generator, steps_per_epoch=1, epochs=epochs, verbose=1,validation_data=validationGenerator, callbacks=[early_stop])
+        model.fit(generator, steps_per_epoch=1, epochs=epochs, verbose=1,validation_data=validationGenerator)
         model.save(modelName)
 
 
     #create 80% training 20% validation
     def createTrainingData(self,data):
-        dataSplitPoint = int(0.8 * len(data))
+        dataSplitPoint = int(0.9 * len(data))
         trainingData = data[:dataSplitPoint]
         validationData = data[dataSplitPoint:]
 
@@ -176,7 +176,7 @@ class XurPredictor():
         
 predictor = XurPredictor(DATABASE_PATH)
 
-predictor.trainModel("xp.keras",200)
+predictor.trainModel("xp.keras",500)
 
 predictor.makePrediction()
 
