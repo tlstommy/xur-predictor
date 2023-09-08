@@ -27,7 +27,7 @@ class XurPredictor():
         self.tableName = TABLE_NAME.upper()
         self.createDB()
         self.data = None
-        self.datasetInputLength = 10
+        self.datasetInputLength = 20
         self.datasetFeatures = 1
 
     
@@ -92,7 +92,7 @@ class XurPredictor():
 
         model = Sequential()
         model.add(LSTM(50, activation='relu', input_shape=(self.datasetInputLength, self.datasetFeatures)))
-        model.add(Dense(1))
+        model.add(Dense(3))
         model.compile(optimizer='adam', loss='mse', metrics=['accuracy'])
             
 
@@ -122,8 +122,8 @@ class XurPredictor():
             targetVal = testLocationData.pop()
 
         #get locational input data and reshape it
-        #locationData = np.array(self.getIDs())
-        locationData = np.array(testLocationData)
+        locationData = np.array(self.getIDs())
+        #locationData = np.array(testLocationData)
 
 
         #reshape location date
@@ -134,19 +134,16 @@ class XurPredictor():
         # predict the next item
         last_sequence = locationData[-self.datasetInputLength:].reshape((1, self.datasetInputLength, self.datasetFeatures))
         nextLocationPredection = model.predict(last_sequence, verbose=0)
+        print(nextLocationPredection,"\n")
         predictedLocVal = nextLocationPredection[0][0]
         predictedLocValRound = np.round(predictedLocVal)
-        print(f"Prev Week: {locationData[-1][0]}")
+        predictedLoc = np.argmax(nextLocationPredection)
+        print(f"Predicted Next Item in Sequence: {predictedLoc}")
+        print("0:", nextLocationPredection[0][0])
+        print("1:", nextLocationPredection[0][1])
+        print("2:", nextLocationPredection[0][2])
+        print(f"\n\nPrev Week: {locationData[-1][0]}")
         print(f"Target: {targetVal}")
-
-        if predictedLocValRound == locationData[-1]:
-            self.handleRepeat(predictedLocVal,locationData[-1][0])
-
-        
-        print(f"Predicted Next Item in Sequence: {predictedLocValRound} ({predictedLocVal})\n\n")
-
-        
-        
 
         return(predictedLocVal)
 
