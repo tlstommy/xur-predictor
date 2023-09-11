@@ -138,6 +138,8 @@ class XurPredictor():
 
     #pure random
     def predictNextMath(self,sequence):
+        print("Dplicate prediction, generating random.\n")
+
         #last second to last and 3rd to last vals
         lastValue = sequence[-1]
         secondValue = sequence[-2]
@@ -148,7 +150,7 @@ class XurPredictor():
             # If the last two values are the same, choose a value different from the last value
             possible_next_values = [x for x in [0, 1, 2] if x != lastValue]
         elif lastValue == thirdValue:
-            # If a pattern of alternating values is detected, predict a value different from the second_last value
+            # If a pattern of alternating values, predict a value different from the second to last value
             possible_next_values = [x for x in [0, 1, 2] if x != secondValue]
         else:
             # If no pattern is detected, consider any value except the last value
@@ -183,12 +185,12 @@ class XurPredictor():
         last_sequence = locationData[-self.datasetInputLength:].reshape((1, self.datasetInputLength, self.datasetFeatures))
         nextLocationPredection = model.predict(last_sequence, verbose=0)
         print(nextLocationPredection,"\n")
-        predictedLocVal = nextLocationPredection[0][0]
-        predictedLocValRound = np.round(predictedLocVal)
         predictedLoc = np.argmax(nextLocationPredection)
-
+        
         if predictedLoc == locationData[-1][0]:
-            print("duplicate prediction: ",self.predictNextMath(self.getIDs()))
+            predictedLoc = self.predictNextMath(self.getIDs())
+    
+        
 
 
 
@@ -199,8 +201,8 @@ class XurPredictor():
         print(f"\n\nPrev Week: {locationData[-1][0]}")
         print(f"Target: {targetVal}")
 
-
-        return(predictedLocVal)
+        print(predictedLoc)
+        return(predictedLoc)
 
 
         
