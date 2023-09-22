@@ -131,13 +131,6 @@ class XurPredictor():
     def loadModel(self,modelName):
         return keras.models.load_model(modelName)
 
-    def handleRepeat(self,predictionValue,previousValue):
-        print(predictionValue,previousValue)
-        if predictionValue <= 0.85:
-            predictionValue = np.round(predictionValue) - 1
-        
-        print(f"adjusted repeat value: {predictionValue}" )
-
     #pure random
     def duplicatePrediction(self,nextLocationPrediction):
         print("Duplicate prediction, getting second most likely option.\n")
