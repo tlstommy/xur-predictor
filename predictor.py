@@ -2,6 +2,7 @@ import sqlite3
 import numpy as np
 import json
 import random
+import requests
 import tensorflow as tf
 from sqlite3 import Error
 from collections import Counter
