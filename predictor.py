@@ -200,6 +200,14 @@ class XurPredictor():
         print("2:", nextLocationPredection[0][2])
         print(f"\n\nPrev Week: {locationData[-1][0]}")
         print(f"Target: {targetVal}")
+        
+        
+        sortList =[]
+        sortList.append(nextLocationPredection[0][0])
+        sortList.append(nextLocationPredection[0][1])
+        sortList.append(nextLocationPredection[0][2])
+        
+        print(np.sort(nextLocationPredection[0]))
 
         print(predictedLoc)
         return(predictedLoc)
