@@ -192,10 +192,8 @@ class XurPredictor():
         print("1:", nextLocationPrediction[0][1])
         print("2:", nextLocationPrediction[0][2])
         print(f"\n\nPrev Week: {locationData[-1][0]}")
+        print(f"Prediction: {predictedLoc}")
         print(f"Target: {targetVal}")
-
-
-        print(predictedLoc)
         return(predictedLoc)
 
 
