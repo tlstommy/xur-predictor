@@ -1,5 +1,6 @@
 import sqlite3
 import numpy as np
+import json
 import random
 import tensorflow as tf
 from sqlite3 import Error
@@ -137,29 +138,23 @@ class XurPredictor():
         print(f"adjusted repeat value: {predictionValue}" )
 
     #pure random
-    def predictNextMath(self,sequence):
-        print("Dplicate prediction, generating random.\n")
+    def duplicatePrediction(self,nextLocationPrediction):
+        print("Duplicate prediction, getting second most likely option.\n")
+        
+        
+        resultDict = { 
+            0:nextLocationPrediction[0][0],
+            1:nextLocationPrediction[0][1], 
+            2:nextLocationPrediction[0][2]
+        }
+        
+        #sort results by val
+        resultsSorted = sorted(resultDict, key=lambda k: resultDict[k],reverse=True)
 
-        #last second to last and 3rd to last vals
-        lastValue = sequence[-1]
-        secondValue = sequence[-2]
-        thirdValue = sequence[-3]
+        print(resultDict)
+        print(resultsSorted)
         
-        # Predict based on recent patterns
-        if lastValue == secondValue:
-            # If the last two values are the same, choose a value different from the last value
-            possible_next_values = [x for x in [0, 1, 2] if x != lastValue]
-        elif lastValue == thirdValue:
-            # If a pattern of alternating values, predict a value different from the second to last value
-            possible_next_values = [x for x in [0, 1, 2] if x != secondValue]
-        else:
-            # If no pattern is detected, consider any value except the last value
-            possible_next_values = [x for x in [0, 1, 2] if x != lastValue]
-        
-        # Randomly select a value from the possible next values
-        nextValue = random.choice(possible_next_values)
-        
-        return nextValue
+        return resultsSorted[1]
 
     def makePrediction(self):
         testLocationData = [0, 2, 0, 1, 0, 1, 0, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 0, 2, 0, 2, 1, 0, 0, 0, 0, 2, 0, 1, 2, 0, 2, 1, 0, 2, 0, 2, 0, 2, 1, 0, 0, 2, 1, 0, 0, 2, 1, 0, 2, 0, 1, 2, 0, 2, 0, 2, 1, 0, 1, 0, 1, 2, 0, 1, 2, 1, 1, 0, 1, 2, 0, 2, 1, 0, 1, 2, 1, 1, 2, 0, 2, 0, 2, 0, 2, 1, 0, 2, 0, 1, 0, 2, 0, 1, 0, 2, 1, 0, 0, 2, 1, 2, 1, 2, 1, 0, 1, 1, 0, 2, 0, 2, 0, 1, 0, 1, 2, 0, 2, 1, 0, 1, 2, 1, 2, 0, 2, 1, 2, 1, 1, 0, 1, 2, 0, 1, 2, 0, 1, 0, 1, 2, 1, 2, 0, 1]
@@ -183,31 +178,22 @@ class XurPredictor():
 
         # predict the next item
         last_sequence = locationData[-self.datasetInputLength:].reshape((1, self.datasetInputLength, self.datasetFeatures))
-        nextLocationPredection = model.predict(last_sequence, verbose=0)
-        print(nextLocationPredection,"\n")
-        predictedLoc = np.argmax(nextLocationPredection)
+        nextLocationPrediction = model.predict(last_sequence, verbose=0)
+        print(nextLocationPrediction,"\n")
+        predictedLoc = np.argmax(nextLocationPrediction)
         
+
         if predictedLoc == locationData[-1][0]:
-            predictedLoc = self.predictNextMath(self.getIDs())
+            predictedLoc = self.duplicatePrediction(nextLocationPrediction)
     
         
-
-
-
-        print(f"Predicted Next Item in Sequence: {predictedLoc}")
-        print("0:", nextLocationPredection[0][0])
-        print("1:", nextLocationPredection[0][1])
-        print("2:", nextLocationPredection[0][2])
+        print(f"\nPredicted Next Item in Sequence: {predictedLoc}")
+        print("0:", nextLocationPrediction[0][0])
+        print("1:", nextLocationPrediction[0][1])
+        print("2:", nextLocationPrediction[0][2])
         print(f"\n\nPrev Week: {locationData[-1][0]}")
         print(f"Target: {targetVal}")
-        
-        
-        sortList =[]
-        sortList.append(nextLocationPredection[0][0])
-        sortList.append(nextLocationPredection[0][1])
-        sortList.append(nextLocationPredection[0][2])
-        
-        print(np.sort(nextLocationPredection[0]))
+
 
         print(predictedLoc)
         return(predictedLoc)
