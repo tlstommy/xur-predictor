@@ -197,5 +197,5 @@ class XurPredictor():
 predictor = XurPredictor(DATABASE_PATH)
 
 #predictor.trainModel("xp.keras",500)
-predictor.addDataToDB([148,"09-22-2023",0])
+#predictor.addDataToDB([148,"09-22-2023",0])
 predictor.makePrediction()
