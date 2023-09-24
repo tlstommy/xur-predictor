@@ -150,8 +150,8 @@ class XurPredictor():
         
         return resultsSorted[1]
 
-    def makePrediction(self):
-        testLocationData = [0, 2, 0, 1, 0, 1, 0, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 0, 2, 0, 2, 1, 0, 0, 0, 0, 2, 0, 1, 2, 0, 2, 1, 0, 2, 0, 2, 0, 2, 1, 0, 0, 2, 1, 0, 0, 2, 1, 0, 2, 0, 1, 2, 0, 2, 0, 2, 1, 0, 1, 0, 1, 2, 0, 1, 2, 1, 1, 0, 1, 2, 0, 2, 1, 0, 1, 2, 1, 1, 2, 0, 2, 0, 2, 0, 2, 1, 0, 2, 0, 1, 0, 2, 0, 1, 0, 2, 1, 0, 0, 2, 1, 2, 1, 2, 1, 0, 1, 1, 0, 2, 0, 2, 0, 1, 0, 1, 2, 0, 2, 1, 0, 1, 2, 1, 2, 0, 2, 1, 2, 1, 1, 0, 1, 2, 0, 1, 2, 0, 1, 0, 1, 2, 1, 2, 0, 1]
+    def makePrediction(self,modelName):
+        testLocationData = [0, 2, 0, 1, 0, 1, 0, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 0, 2, 0, 2, 1, 0, 0, 0, 0, 2, 0, 1, 2, 0, 2, 1, 0, 2, 0, 2, 0, 2, 1, 0, 0, 2, 1, 0, 0, 2, 1, 0, 2, 0, 1, 2, 0, 2, 0, 2, 1, 0, 1, 0, 1, 2, 0, 1, 2, 1, 1, 0, 1, 2, 0, 2, 1, 0, 1, 2, 1, 1, 2, 0, 2, 0, 2, 0, 2, 1, 0, 2, 0, 1, 0, 2, 0, 1, 0, 2, 1, 0, 0, 2, 1, 2, 1, 2, 1, 0, 1, 1, 0, 2, 0, 2, 0, 1, 0, 1, 2, 0, 2, 1, 0, 1, 2, 1, 2, 0, 2, 1, 2, 1, 1, 0, 1, 2, 0, 1, 2, 0, 1, 0, 1, 2, 1, 2, 0, 1,2,1,0]
 
         removeNWeeks = 0
 
@@ -168,7 +168,7 @@ class XurPredictor():
         #reshape location date
         locationData = locationData.reshape((len(locationData), self.datasetFeatures))
 
-        model = self.loadModel("xp.keras")
+        model = self.loadModel(modelName)
 
         # predict the next item
         last_sequence = locationData[-self.datasetInputLength:].reshape((1, self.datasetInputLength, self.datasetFeatures))
@@ -194,8 +194,10 @@ class XurPredictor():
         
  
         
+MODEL_NAME = "xp-test.keras"
+        
 predictor = XurPredictor(DATABASE_PATH)
 
-#predictor.trainModel("xp.keras",500)
+#predictor.trainModel(MODEL_NAME,500)
 #predictor.addDataToDB([148,"09-22-2023",0])
-predictor.makePrediction()
+predictor.makePrediction(MODEL_NAME)
