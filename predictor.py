@@ -11,6 +11,7 @@ from keras.callbacks import EarlyStopping
 from keras.models import Sequential
 from keras.layers import Dense, Embedding, LSTM
 from keras.preprocessing.sequence import TimeseriesGenerator
+import matplotlib.pyplot as plt
 
 
 DATABASE_PATH = "xurHistory.db"
@@ -149,6 +150,9 @@ class XurPredictor():
         print(resultsSorted)
         
         return resultsSorted[1]
+    
+    def softmax(self,x):
+        return np.exp(x) / np.sum(np.exp(x), axis=0)
 
     def makePrediction(self,modelName):
         testLocationData = [0, 2, 0, 1, 0, 1, 0, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 0, 2, 0, 2, 1, 0, 0, 0, 0, 2, 0, 1, 2, 0, 2, 1, 0, 2, 0, 2, 0, 2, 1, 0, 0, 2, 1, 0, 0, 2, 1, 0, 2, 0, 1, 2, 0, 2, 0, 2, 1, 0, 1, 0, 1, 2, 0, 1, 2, 1, 1, 0, 1, 2, 0, 2, 1, 0, 1, 2, 1, 1, 2, 0, 2, 0, 2, 0, 2, 1, 0, 2, 0, 1, 0, 2, 0, 1, 0, 2, 1, 0, 0, 2, 1, 2, 1, 2, 1, 0, 1, 1, 0, 2, 0, 2, 0, 1, 0, 1, 2, 0, 2, 1, 0, 1, 2, 1, 2, 0, 2, 1, 2, 1, 1, 0, 1, 2, 0, 1, 2, 0, 1, 0, 1, 2, 1, 2, 0, 1,2,1,0]
@@ -179,25 +183,33 @@ class XurPredictor():
 
         if predictedLoc == locationData[-1][0]:
             predictedLoc = self.duplicatePrediction(nextLocationPrediction)
-    
+
+        #calc as %
+        percentages = self.softmax(nextLocationPrediction[0]) * 100
         
         print(f"\nPredicted Next Item in Sequence: {predictedLoc}")
-        print("0:", nextLocationPrediction[0][0])
-        print("1:", nextLocationPrediction[0][1])
-        print("2:", nextLocationPrediction[0][2])
+        print(f"0: {percentages[0]:.2f}% ({nextLocationPrediction[0][0]})")
+        print(f"1: {percentages[1]:.2f}% ({nextLocationPrediction[0][1]})")
+        print(f"2: {percentages[2]:.2f}% ({nextLocationPrediction[0][2]})")
         print(f"\n\nPrev Week: {locationData[-1][0]}")
         print(f"Prediction: {predictedLoc}")
         print(f"Target: {targetVal}")
-        return(predictedLoc)
 
 
+        return[predictedLoc,percentages]
+
+
+def makeGraph(data):
+    labels = ["Tower Hangar","Winding Cove","Watcher's Grave"]
+    plt.pie(data,labels=labels)
+    plt.show() 
         
  
         
-MODEL_NAME = "xp-test.keras"
+MODEL_NAME = "xp-main.keras"
         
 predictor = XurPredictor(DATABASE_PATH)
 
 #predictor.trainModel(MODEL_NAME,500)
 #predictor.addDataToDB([148,"09-22-2023",0])
-predictor.makePrediction(MODEL_NAME)
+makeGraph(predictor.makePrediction(MODEL_NAME)[1])
