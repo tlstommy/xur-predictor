@@ -196,8 +196,9 @@ class XurPredictor():
 
 def makeGraph(data):
     labels = ["Tower Hangar","Winding Cove","Watcher's Grave"]
-    plt.pie(data,labels=labels)
-    #plt.show() 
+    plt.pie(data[1],labels=labels,autopct='%1.2f%%')
+    plt.title(f"XUR Location Prediction:\n {predictor.translateID(data[0])}")
+    plt.show() 
         
  
         
@@ -207,4 +208,4 @@ predictor = XurPredictor(DATABASE_PATH)
 
 #predictor.trainModel(MODEL_NAME,500)
 #predictor.addDataToDB([148,"09-22-2023",0])
-makeGraph(predictor.makePrediction(MODEL_NAME)[1])
+makeGraph(predictor.makePrediction(MODEL_NAME))
