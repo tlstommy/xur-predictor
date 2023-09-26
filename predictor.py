@@ -12,8 +12,10 @@ from keras.models import Sequential
 from keras.layers import Dense, Embedding, LSTM, Dropout
 from keras.preprocessing.sequence import TimeseriesGenerator
 import matplotlib.pyplot as plt
+from datetime import date, timedelta
 
 
+API_ENDPOINT = "https://xurtracker.com/api/prediction-data"
 DATABASE_PATH = "xurHistory.db"
 TABLE_NAME = "history"
 OVERWRITE_OLD = False
@@ -28,6 +30,7 @@ class XurPredictor():
         self.data = None
         self.datasetInputLength = 10
         self.datasetFeatures = 1
+        self.startDate = date(2020,11,13)
 
     
     #create a new db using the GLOBALS above
@@ -71,6 +74,18 @@ class XurPredictor():
         if id == 2:
             location = "Watcher's Grave\nArcadian Valley, Nessus"
         return location
+    
+    #return the last week in the db
+    def getLastWeekInDB(self):
+        weeks = []
+        with sqlite3.connect(self.databasePath) as database:
+            cursor = database.cursor()
+            
+            #get locationIDS and return them as a list for predictions
+            cursor.execute(f'''SELECT Weeks_Since_11_13_2020 FROM {self.tableName}''')
+            weeks = [int(item[0]) for item in cursor.fetchall()]
+        return weeks[-1]
+
     #get location id data
     def getIDs(self):
         with sqlite3.connect(self.databasePath) as database:
@@ -148,7 +163,31 @@ class XurPredictor():
     
     def softmax(self,x):
         return np.exp(x) / np.sum(np.exp(x), axis=0)
+    def getWeeksSince(self,startDate):
+        
+        days = date.today() - startDate
 
+        weeks = days.days // 7
+        
+        return weeks-1
+    def addNewLocData(self):
+        previousWeek = self.getWeeksSince(self.startDate)
+        apiData = json.loads(str(requests.get(API_ENDPOINT).content.decode()))
+        apiCurrentWeek = apiData["week"]
+        apiCurrentLocationID = apiData["id"]
+        apiCurrentDate = apiData["date"]
+
+        print(apiData)
+
+        #make sure data isnt old or doesnt already exist in the db
+        if(previousWeek <= self.getLastWeekInDB()):
+            print("OLD DATA")
+            return -1
+        
+        print("Adding new data")
+        self.addDataToDB([int(apiCurrentWeek),apiCurrentDate,int(apiCurrentLocationID)])
+        
+        print(apiData["week"])
     def makePrediction(self,modelName):
         testLocationData = [0, 2, 0, 1, 0, 1, 0, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 0, 2, 0, 2, 1, 0, 0, 0, 0, 2, 0, 1, 2, 0, 2, 1, 0, 2, 0, 2, 0, 2, 1, 0, 0, 2, 1, 0, 0, 2, 1, 0, 2, 0, 1, 2, 0, 2, 0, 2, 1, 0, 1, 0, 1, 2, 0, 1, 2, 1, 1, 0, 1, 2, 0, 2, 1, 0, 1, 2, 1, 1, 2, 0, 2, 0, 2, 0, 2, 1, 0, 2, 0, 1, 0, 2, 0, 1, 0, 2, 1, 0, 0, 2, 1, 2, 1, 2, 1, 0, 1, 1, 0, 2, 0, 2, 0, 1, 0, 1, 2, 0, 2, 1, 0, 1, 2, 1, 2, 0, 2, 1, 2, 1, 1, 0, 1, 2, 0, 1, 2, 0, 1, 0, 1, 2, 1, 2, 0, 1,2,1,0]
 
@@ -206,6 +245,9 @@ MODEL_NAME = "xp-main.keras"
         
 predictor = XurPredictor(DATABASE_PATH)
 
+#grab and add new data to the db from xurtracker
+predictor.addNewLocData()
+
 #predictor.trainModel(MODEL_NAME,500)
 #predictor.addDataToDB([148,"09-22-2023",0])
-makeGraph(predictor.makePrediction(MODEL_NAME))
+#makeGraph(predictor.makePrediction(MODEL_NAME))
