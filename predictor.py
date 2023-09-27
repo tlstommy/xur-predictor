@@ -250,4 +250,4 @@ predictor.addNewLocData()
 
 #predictor.trainModel(MODEL_NAME,500)
 #predictor.addDataToDB([148,"09-22-2023",0])
-#makeGraph(predictor.makePrediction(MODEL_NAME))
+makeGraph(predictor.makePrediction(MODEL_NAME))
