@@ -241,12 +241,7 @@ def makeGraph(data):
         
  
         
-#using input size of 16
-#Predicted Next Item in Sequence: 2
-#   0: 34.05% (0.35756048560142517)
-#   1: 29.95% (0.22933964431285858)
-#   2: 36.00% (0.4130999445915222)
-#MODEL_NAME = "xp-main-16.keras"
+
 
 
 #using input size of 10
@@ -259,7 +254,7 @@ MODEL_NAME = "xp-main.keras"
 predictor = XurPredictor(DATABASE_PATH)
 
 #grab and add new data to the db from xurtracker
-#predictor.addNewLocData()
+predictor.addNewLocData()
 
 #predictor.trainModel(MODEL_NAME,500)
 #predictor.addDataToDB([148,"09-22-2023",0])
