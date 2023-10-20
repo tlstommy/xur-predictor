@@ -254,8 +254,9 @@ MODEL_NAME = "xp-main.keras"
 predictor = XurPredictor(DATABASE_PATH)
 
 #grab and add new data to the db from xurtracker
-predictor.addNewLocData()
+#predictor.addNewLocData()
 
 #predictor.trainModel(MODEL_NAME,500)
-#predictor.addDataToDB([148,"09-22-2023",0])
+
+#predictor.addDataToDB([151,"10-13-2023",2])
 makeGraph(predictor.makePrediction(MODEL_NAME))
