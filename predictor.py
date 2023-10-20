@@ -18,12 +18,13 @@ from datetime import date, timedelta
 API_ENDPOINT = "https://xurtracker.com/api/prediction-data"
 DATABASE_PATH = "xurHistory.db"
 TABLE_NAME = "history"
+MODEL_NAME = "xp-main.keras"
 OVERWRITE_OLD = False
 
 
 class XurPredictor():
+
     def __init__(self,dbPath):
-        
         self.databasePath = dbPath
         self.tableName = TABLE_NAME.upper()
         self.createDB()
@@ -35,70 +36,58 @@ class XurPredictor():
     
     #create a new db using the GLOBALS above
     def createDB(self):
-        name = self.tableName
-        with sqlite3.connect(self.databasePath) as database:
+        with sqlite3.connect(self.database_path) as database:
             cursor = database.cursor()
-
-            #table header info
-            sqlTable = f"""
-                CREATE TABLE {name} (
-                Weeks_Since_11_13_2020 INT NOT NULL,
-                Date DATETIME NOT NULL,
-                LocationID VARCHAR(255) NOT NULL
+            create_table_sql = f"""
+                CREATE TABLE IF NOT EXISTS {self.table_name} (
+                    Weeks_Since_11_13_2020 INT NOT NULL,
+                    Date DATETIME NOT NULL,
+                    LocationID VARCHAR(255) NOT NULL
                 );
-                """
-            try:
-                cursor.execute(sqlTable)
-            except sqlite3.OperationalError:
-                if(OVERWRITE_OLD):
-                    
-                    print("OVERWRITING OLD TABLE\n")
-                    cursor.execute(f"DROP TABLE IF EXISTS {name}")
-                    cursor.execute(sqlTable)
-
+            """
+            cursor.execute(create_table_sql)
+            if OVERWRITE_OLD:
+                print("OVERWRITING OLD TABLE")
+                cursor.execute(f"DROP TABLE IF EXISTS {self.table_name}")
+                cursor.execute(create_table_sql)
+    
     #append new data to db
     def addDataToDB(self,data):
         with sqlite3.connect(self.databasePath) as database:
             cursor = database.cursor()
-
-            cursor.execute(f'''INSERT INTO {self.tableName} VALUES ('{data[0]}','{data[1]}','{data[2]}')''')
+            cursor.execute(f"INSERT INTO {self.tableName} VALUES (?, ?, ?)", data)
             database.commit()
-
             print(f"Added {data} to database")
-            
-    def translateID(self,id):
-        if id == 0:
-            location = "Tower Hangar\nThe Last City, Earth"
-        if id == 1:
-            location = "Winding Cove\nEuropean Dead Zone, Earth"
-        if id == 2:
-            location = "Watcher's Grave\nArcadian Valley, Nessus"
-        return location
     
-    #return the last week in the db
+    #translate id to loc string
+    def translateID(self,id):
+        locations = {
+            0: "Tower Hangar\nThe Last City, Earth",
+            1: "Winding Cove\nEuropean Dead Zone, Earth",
+            2: "Watcher's Grave\nArcadian Valley, Nessus"
+        }
+        return locations.get(id)
+    
+    #get last week in database
     def getLastWeekInDB(self):
         weeks = []
         with sqlite3.connect(self.databasePath) as database:
             cursor = database.cursor()
-            
-            #get locationIDS and return them as a list for predictions
             cursor.execute(f'''SELECT Weeks_Since_11_13_2020 FROM {self.tableName}''')
             weeks = [int(item[0]) for item in cursor.fetchall()]
+
         return weeks[-1]
 
-    #get location id data
+    #get locationIDS and return them as a list for predictions
     def getIDs(self):
         with sqlite3.connect(self.databasePath) as database:
             cursor = database.cursor()
-            
-            #get locationIDS and return them as a list for predictions
             cursor.execute(f'''SELECT LocationID FROM {self.tableName}''')
             return [int(item[0]) for item in cursor.fetchall()]
 
-    def trainModel(self,modelName,epochs):
 
-       
-        
+    #train model for predictions
+    def trainModel(self,modelName,epochs):
         locationData = np.array(self.getIDs())
         locationData = locationData.reshape((len(locationData), self.datasetFeatures))
         
@@ -108,8 +97,6 @@ class XurPredictor():
 
         generator = TimeseriesGenerator(trainingData, trainingData, length=self.datasetInputLength, batch_size=8)
         validationGenerator = TimeseriesGenerator(validationData, validationData, length=self.datasetInputLength, batch_size=8)
-
-        
         early_stop = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=False)
 
 
@@ -121,16 +108,16 @@ class XurPredictor():
         model.add(Dense(3, activation='softmax'))
         model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
 
-        
-        #verbose = 0 is no output
         model.fit(generator, steps_per_epoch=1, epochs=epochs, verbose=1,validation_data=validationGenerator)
         #model.fit(generator, steps_per_epoch=1, epochs=epochs, verbose=1,validation_data=validationGenerator,callbacks=[early_stop])
+        
         model.save(modelName)
 
 
     #create 80% training 20% validation
     def createTrainingData(self,data):
         dataSplitPoint = int(0.8 * len(data))
+        
         trainingData = data[:dataSplitPoint]
         validationData = data[dataSplitPoint:]
 
@@ -161,17 +148,19 @@ class XurPredictor():
         
         return resultsSorted[1]
     
+    #softmax func
     def softmax(self,x):
         return np.exp(x) / np.sum(np.exp(x), axis=0)
+    
     def getWeeksSince(self,startDate):
         
         days = date.today() - startDate
-
-        weeks = days.days // 7
-        
-        return weeks-1
+     
+        return (days.days // 7) - 1
+    
     def addNewLocData(self):
         previousWeek = self.getWeeksSince(self.startDate)
+        
         apiData = json.loads(str(requests.get(API_ENDPOINT).content.decode()))
         apiCurrentWeek = apiData["week"]
         apiCurrentLocationID = apiData["id"]
@@ -188,6 +177,8 @@ class XurPredictor():
         self.addDataToDB([int(apiCurrentWeek),apiCurrentDate,int(apiCurrentLocationID)])
         
         print(apiData["week"])
+    
+    
     def makePrediction(self,modelName):
         testLocationData = [0, 2, 0, 1, 0, 1, 0, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 0, 2, 0, 2, 1, 0, 0, 0, 0, 2, 0, 1, 2, 0, 2, 1, 0, 2, 0, 2, 0, 2, 1, 0, 0, 2, 1, 0, 0, 2, 1, 0, 2, 0, 1, 2, 0, 2, 0, 2, 1, 0, 1, 0, 1, 2, 0, 1, 2, 1, 1, 0, 1, 2, 0, 2, 1, 0, 1, 2, 1, 1, 2, 0, 2, 0, 2, 0, 2, 1, 0, 2, 0, 1, 0, 2, 0, 1, 0, 2, 1, 0, 0, 2, 1, 2, 1, 2, 1, 0, 1, 1, 0, 2, 0, 2, 0, 1, 0, 1, 2, 0, 2, 1, 0, 1, 2, 1, 2, 0, 2, 1, 2, 1, 1, 0, 1, 2, 0, 1, 2, 0, 1, 0, 1, 2, 1, 2, 0, 1,2,1,0]
 
