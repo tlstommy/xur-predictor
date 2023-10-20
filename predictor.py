@@ -36,10 +36,10 @@ class XurPredictor():
     
     #create a new db using the GLOBALS above
     def createDB(self):
-        with sqlite3.connect(self.database_path) as database:
+        with sqlite3.connect(self.databasePath) as database:
             cursor = database.cursor()
             create_table_sql = f"""
-                CREATE TABLE IF NOT EXISTS {self.table_name} (
+                CREATE TABLE IF NOT EXISTS {self.tableName} (
                     Weeks_Since_11_13_2020 INT NOT NULL,
                     Date DATETIME NOT NULL,
                     LocationID VARCHAR(255) NOT NULL
@@ -48,7 +48,7 @@ class XurPredictor():
             cursor.execute(create_table_sql)
             if OVERWRITE_OLD:
                 print("OVERWRITING OLD TABLE")
-                cursor.execute(f"DROP TABLE IF EXISTS {self.table_name}")
+                cursor.execute(f"DROP TABLE IF EXISTS {self.tableName}")
                 cursor.execute(create_table_sql)
     
     #append new data to db
@@ -89,6 +89,9 @@ class XurPredictor():
     #train model for predictions
     def trainModel(self,modelName,epochs):
         locationData = np.array(self.getIDs())
+
+        print(locationData)
+        
         locationData = locationData.reshape((len(locationData), self.datasetFeatures))
         
         #get training datasets
@@ -247,7 +250,7 @@ predictor = XurPredictor(DATABASE_PATH)
 #grab and add new data to the db from xurtracker
 #predictor.addNewLocData()
 
-#predictor.trainModel(MODEL_NAME,500)
+predictor.trainModel(MODEL_NAME,500)
 
 #predictor.addDataToDB([151,"10-13-2023",2])
 makeGraph(predictor.makePrediction(MODEL_NAME))
