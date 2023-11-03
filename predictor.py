@@ -93,6 +93,7 @@ class XurPredictor():
         print(locationData)
         
         locationData = locationData.reshape((len(locationData), self.datasetFeatures))
+        locationData = locationData.reshape(-1, 1)
         
         #get training datasets
         trainingData, validationData = self.createTrainingData(locationData)
@@ -216,9 +217,9 @@ class XurPredictor():
         percentages = self.softmax(nextLocationPrediction[0]) * 100
         
         print(f"\nPredicted Next Item in Sequence: {predictedLoc}")
-        print(f"0: {percentages[0]:.2f}% ({nextLocationPrediction[0][0]})")
-        print(f"1: {percentages[1]:.2f}% ({nextLocationPrediction[0][1]})")
-        print(f"2: {percentages[2]:.2f}% ({nextLocationPrediction[0][2]})")
+        print(f"0: {percentages[0]:.2f}% ({nextLocationPrediction[0][0] * 100}%)")
+        print(f"1: {percentages[1]:.2f}% ({nextLocationPrediction[0][1] * 100}%)")
+        print(f"2: {percentages[2]:.2f}% ({nextLocationPrediction[0][2] * 100}%)")
         print(f"\n\nPrev Week: {locationData[-1][0]}")
         print(f"Prediction: {predictedLoc}")
         print(f"Target: {targetVal}")
@@ -250,7 +251,7 @@ predictor = XurPredictor(DATABASE_PATH)
 #grab and add new data to the db from xurtracker
 #predictor.addNewLocData()
 
-predictor.trainModel(MODEL_NAME,500)
+#predictor.trainModel(MODEL_NAME,500)
 
 #predictor.addDataToDB([151,"10-13-2023",2])
 makeGraph(predictor.makePrediction(MODEL_NAME))

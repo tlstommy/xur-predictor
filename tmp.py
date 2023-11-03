@@ -14,7 +14,7 @@ sequence = [
 ]
 
 #testing
-removeNWeeks = 2
+removeNWeeks = 0
 targetVal = None
 
 #remove last n items for testing
@@ -23,7 +23,7 @@ for i in range(removeNWeeks):
 
 print("Last val: ",sequence[-1])
 # Order of the Markov Chain
-order = 1
+order = 2
 if len(sequence) < order:
     raise ValueError("The sequence length must be greater than the order of the Markov Chain.")
 
@@ -41,10 +41,11 @@ k = 0.1  # Smaller than 1 to reduce the uniformity effect of smoothing
 # Convert counts to probabilities with smoothing
 V = len(set(sequence))
 for curr_states, transitions in transition_matrix.items():
+    
     total = sum(transitions.values())
     for possible_next_state in set(sequence):
         count = transitions[possible_next_state]
-        transition_matrix[curr_states][possible_next_state] = (count + 1) / (total + V * k)
+        transition_matrix[curr_states][possible_next_state] = (count + 1) / (total + V)
 
 # Predict the next item based on the current state and its transition probabilities
 curr_states = tuple(sequence[-order:])
@@ -57,5 +58,8 @@ print("Target:", targetVal)
 print(next_item == targetVal)
 
 print("\nTransition Probabilities from state", curr_states, ":")
+total = 0
 for state, prob in sorted(predicted_probs.items(), key=lambda x: x[1], reverse=True):
     print(f"Probability of transitioning to {state}: {prob:.4f}")
+    total += prob
+print(total)
