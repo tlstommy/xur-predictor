@@ -19,7 +19,7 @@ def create_dataset(sequence, n_features):
 
 
 
-removeNWeeks = 0
+removeNWeeks = 4
 
 targetVal = None
 #remove last n items for testing

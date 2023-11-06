@@ -20,10 +20,11 @@ class XurPredictor():
         self.databasePath = dbPath
         self.tableName = TABLE_NAME.upper()
         self.createDB()
-        self.windowSize = 12 #number of past items to analyze
+        self.windowSize = 14 #number of past items to analyze
         self.data = None
         self.trainingDataX = None
         self.trainingDataY = None
+        self.locationData = None
         self.datasetInputLength = 10
         self.datasetFeatures = 1
         self.startDate = date(2020,11,13)
@@ -61,7 +62,7 @@ class XurPredictor():
         }
         return locations.get(id)
     
-    #get last week in database
+    #get last week num in database
     def getLastWeekInDB(self):
         weeks = []
         with sqlite3.connect(self.databasePath) as database:
@@ -90,17 +91,30 @@ class XurPredictor():
         xVals = []
         yVals = []
 
-        locationData = self.getIDs()
+        self.locationData = self.getIDs()
+
+        removeNWeeks = 3
+
+       
+
+        targetVal = None
+        #remove last n items for testing
+        for i in range(removeNWeeks):
+            targetVal = self.locationData.pop()
+        print("target: ", targetVal)
+        print("Last item: ", self.locationData[-1])
+
+
         #print(locationData)
 
-        for i in range(len(locationData) - self.windowSize):
+        for i in range(len(self.locationData) - self.windowSize):
 
             #append a list of size windowSize to a list
-            xVals.append(locationData[i:i + self.windowSize])
+            xVals.append(self.locationData[i:i + self.windowSize])
             #append the items after the nth windowsize item.
-            yVals.append(locationData[i + self.windowSize])
+            yVals.append(self.locationData[i + self.windowSize])
             
-        return np.array(xVals), np.array(yVals)
+        self.makeTrainingData(np.array(xVals), np.array(yVals))
 
     #Split data into training data
     def makeTrainingData(self, xVals, yVals):
@@ -110,11 +124,24 @@ class XurPredictor():
     
     #make a model and predict the next item
     def makePrediction(self):
+        
+        self.createDataset()
+        
         model = LogisticRegression(max_iter=200)  # Increased max_iter to ensure convergence
         model.fit(self.trainingDataX, self.trainingDataY)
+        
+        prediction = model.predict([self.locationData[-self.windowSize:]])
+        predictionProbs = model.predict_proba([self.locationData[-self.windowSize:]])
+        
+        print(f"Prediction probabilities:")
+        print(f"Probability of 0: {predictionProbs[0][0]*100}%")
+        print(f"Probability of 1: {predictionProbs[0][1]*100}%")
+        print(f"Probability of 2: {predictionProbs[0][2]*100}%\n")
+        print(f"The most likely next item in the sequence is: {prediction[0]}")
 
 
 
 predictor = XurPredictor(DATABASE_PATH)
 
-predictor.createDataset()
+
+predictor.makePrediction()
