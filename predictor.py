@@ -56,9 +56,9 @@ class XurPredictor():
     #translate id to loc string
     def translateID(self,id):
         locations = {
-            0: "Tower Hangar\nThe Last City, Earth",
-            1: "Winding Cove\nEuropean Dead Zone, Earth",
-            2: "Watcher's Grave\nArcadian Valley, Nessus"
+            0: "Tower Hangar, The Last City, Earth",
+            1: "Winding Cove, European Dead Zone, Earth",
+            2: "Watcher's Grave, Arcadian Valley, Nessus"
         }
         return locations.get(id)
     
@@ -85,6 +85,29 @@ class XurPredictor():
      
         return (days.days // 7) - 1
     
+    #get the data from the xurtracker api
+    def addNewLocDataFromApi(self):
+        previousWeek = self.getWeeksSince(self.startDate)
+        
+        apiData = json.loads(str(requests.get(API_ENDPOINT).content.decode()))
+        apiCurrentWeek = apiData["week"]
+        apiCurrentLocationID = apiData["id"]
+        apiCurrentDate = apiData["date"]
+
+        print(apiData)
+
+        #make sure data isnt old or doesnt already exist in the db
+        if(previousWeek <= self.getLastWeekInDB()):
+            print("OLD DATA")
+            return -1
+        
+        print("Adding new data")
+        print(int(apiCurrentWeek),apiCurrentDate,int(apiCurrentLocationID))
+        #self.addDataToDB([int(apiCurrentWeek),apiCurrentDate,int(apiCurrentLocationID)])
+        
+        print(apiData["week"])
+    
+    
     #create a dataset 
     def createDataset(self):
         
@@ -92,18 +115,8 @@ class XurPredictor():
         yVals = []
 
         self.locationData = self.getIDs()
-
-        removeNWeeks = 3
-
-       
-
-        targetVal = None
-        #remove last n items for testing
-        for i in range(removeNWeeks):
-            targetVal = self.locationData.pop()
-        print("target: ", targetVal)
-        print("Last item: ", self.locationData[-1])
-
+        
+        #self.locationData.pop()
 
         #print(locationData)
 
@@ -137,11 +150,13 @@ class XurPredictor():
         print(f"Probability of 0: {predictionProbs[0][0]*100}%")
         print(f"Probability of 1: {predictionProbs[0][1]*100}%")
         print(f"Probability of 2: {predictionProbs[0][2]*100}%\n")
-        print(f"The most likely next item in the sequence is: {prediction[0]}")
+        
+        print(f"The most likely next item in the sequence is: {prediction[0]} ({self.translateID(prediction[0])})")
 
 
 
 predictor = XurPredictor(DATABASE_PATH)
 
+#predictor.addNewLocDataFromApi()
 
 predictor.makePrediction()
