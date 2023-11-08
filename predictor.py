@@ -152,7 +152,7 @@ class XurPredictor():
         print(f"Probability of 2: {predictionProbs[0][2]*100}%\n")
         
         print(f"The most likely next item in the sequence is: {prediction[0]} ({self.translateID(prediction[0])})")
-
+        print(f"Last location: {self.locationData[-1]} ({self.translateID(self.locationData[-1])})")
 
 
 predictor = XurPredictor(DATABASE_PATH)

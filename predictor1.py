@@ -196,7 +196,7 @@ class XurPredictor():
         #get locational input data and reshape it
         locationData = np.array(self.getIDs())
         print(locationData)
-        input()
+
         #locationData = np.array(testLocationData)
 
 
