@@ -103,7 +103,7 @@ class XurPredictor():
         
         print("Adding new data")
         print(int(apiCurrentWeek),apiCurrentDate,int(apiCurrentLocationID))
-        #self.addDataToDB([int(apiCurrentWeek),apiCurrentDate,int(apiCurrentLocationID)])
+        self.addDataToDB([int(apiCurrentWeek),apiCurrentDate,int(apiCurrentLocationID)])
         
         print(apiData["week"])
     
@@ -156,7 +156,6 @@ class XurPredictor():
 
 
 predictor = XurPredictor(DATABASE_PATH)
-
 #predictor.addNewLocDataFromApi()
 
 predictor.makePrediction()
