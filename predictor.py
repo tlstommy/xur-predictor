@@ -157,5 +157,7 @@ class XurPredictor():
 
 predictor = XurPredictor(DATABASE_PATH)
 #predictor.addNewLocDataFromApi()
+predictor.addDataToDB([157,"11-24-2023",1])
+
 
 predictor.makePrediction()
