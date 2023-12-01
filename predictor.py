@@ -140,7 +140,7 @@ class XurPredictor():
         
         self.createDataset()
         
-        model = LogisticRegression(max_iter=200)  # Increased max_iter to ensure convergence
+        model = LogisticRegression(max_iter=200)  #max iter is the epochs for conv
         model.fit(self.trainingDataX, self.trainingDataY)
         
         prediction = model.predict([self.locationData[-self.windowSize:]])
