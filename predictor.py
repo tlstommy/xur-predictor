@@ -20,7 +20,7 @@ class XurPredictor():
         self.databasePath = dbPath
         self.tableName = TABLE_NAME.upper()
         self.createDB()
-        self.windowSize = 14 #number of past items to analyze
+        self.windowSize = 15 #number of past items to analyze
         self.data = None
         self.trainingDataX = None
         self.trainingDataY = None
