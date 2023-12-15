@@ -20,7 +20,9 @@ class XurPredictor():
         self.databasePath = dbPath
         self.tableName = TABLE_NAME.upper()
         self.createDB()
-        self.windowSize = 15 #number of past items to analyze
+        #self.windowSize = 15 #number of past items to analyze
+        #self.windowSize = 36 #number of past items to analyze (wide)
+        #self.windowSize = 51 #number of past items to analyze (wider) 
         self.data = None
         self.trainingDataX = None
         self.trainingDataY = None
@@ -118,7 +120,7 @@ class XurPredictor():
         
         #self.locationData.pop()
 
-        #print(locationData)
+        #print(self.locationData)
 
         for i in range(len(self.locationData) - self.windowSize):
 
@@ -150,6 +152,7 @@ class XurPredictor():
         print(f"Probability of 0: {predictionProbs[0][0]*100}%")
         print(f"Probability of 1: {predictionProbs[0][1]*100}%")
         print(f"Probability of 2: {predictionProbs[0][2]*100}%\n")
+        print(f"Total: {predictionProbs[0][0] + predictionProbs[0][1] + predictionProbs[0][2]}")
         
         print(f"The most likely next item in the sequence is: {prediction[0]} ({self.translateID(prediction[0])})")
         print(f"Last location: {self.locationData[-1]} ({self.translateID(self.locationData[-1])})")
