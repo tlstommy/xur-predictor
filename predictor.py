@@ -22,7 +22,7 @@ class XurPredictor():
         self.createDB()
         #self.windowSize = 15 #number of past items to analyze
         #self.windowSize = 36 #number of past items to analyze (wide)
-        #self.windowSize = 51 #number of past items to analyze (wider) 
+        self.windowSize = 36 #number of past items to analyze (wider) 
         self.data = None
         self.trainingDataX = None
         self.trainingDataY = None
@@ -118,7 +118,11 @@ class XurPredictor():
 
         self.locationData = self.getIDs()
         
-        #self.locationData.pop()
+        
+
+        #print("Target: ",self.locationData[-1])
+
+       
 
         #print(self.locationData)
 
@@ -142,7 +146,7 @@ class XurPredictor():
         
         self.createDataset()
         
-        model = LogisticRegression(max_iter=200)  #max iter is the epochs for conv
+        model = LogisticRegression(multi_class='multinomial', solver='lbfgs', max_iter=200)  #max iter is the epochs for conv
         model.fit(self.trainingDataX, self.trainingDataY)
         
         prediction = model.predict([self.locationData[-self.windowSize:]])
