@@ -118,7 +118,7 @@ class XurPredictor():
 
         self.locationData = self.getIDs()
         
-        
+        #self.locationData.pop()
 
         #print("Target: ",self.locationData[-1])
 
