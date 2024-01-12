@@ -22,7 +22,7 @@ class XurPredictor():
         self.createDB()
         #self.windowSize = 15 #number of past items to analyze
         #self.windowSize = 36 #number of past items to analyze (wide)
-        self.windowSize = 9 #number of past items to analyze (wider) 
+        self.windowSize = 15 #number of past items to analyze (wider) 
         self.data = None
         self.trainingDataX = None
         self.trainingDataY = None
@@ -118,6 +118,7 @@ class XurPredictor():
 
         self.locationData = self.getIDs()
         
+        #self.locationData.pop()
         #self.locationData.pop()
 
         #print("Target: ",self.locationData[-1])
